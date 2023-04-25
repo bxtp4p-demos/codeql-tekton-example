@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: test-codeql-
+spec:
+  pipelineRef:
+    name: test-codeql
+  podTemplate:
+    securityContext:
+      fsGroup: 65532
+  workspaces:
+  - name: shared-data
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+#  - name: maven-settings
+#    emptyDir: {}
+  params:
+  - name: repo-url
+    value: https://github.com/spring-projects/spring-petclinic
+#  - name: MAVEN_IMAGE
+#    value: maven:3.8.3-openjdk-17

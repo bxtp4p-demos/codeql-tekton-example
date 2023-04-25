@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: test-codeql
+spec:
+  description: | 
+    This pipeline clones a git repo and runs codeql on it
+  params:
+  - name: repo-url
+    type: string
+  workspaces:
+  - name: shared-data
+#  - name: maven-settings
+  tasks:
+  - name: fetch-source
+    taskRef:
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: shared-data
+    params:
+    - name: url
+      value: $(params.repo-url)
+    - name: deleteExisting
+      value: "true"
+  - name: build
+    taskRef:
+      name: codeql-build-task
+    runAfter:
+      - fetch-source
+    workspaces:
+    - name: source
+      workspace: shared-data
+
+#  - name: maven-run
+#    taskRef:
+#      name: maven
+#    runAfter:
+#      - fetch-source
+#    params:
+#      - name: GOALS
+#        value:
+#          - -DskipTests
+#          - clean
+#          - package
+#    workspaces:
+#      - name: source
+#        workspace: shared-data
+#      - name: maven-settings
+#        workspace: maven-settings
+
