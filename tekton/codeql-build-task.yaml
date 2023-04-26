@@ -1,0 +1,80 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: codeql-build-task
+spec:
+  workspaces:
+  - name: source
+  params:
+    - name: github-url
+      description: The URL of the GitHub instance to send the SARIF results to
+      type: string
+
+    - name: repository
+      description: The name of the repository to send the SARIF results to
+      type: string
+
+    - name: ref
+      description: The source ref to associate the SARIF results to
+      type: string
+      default: refs/heads/main
+
+    - name: commit-sha
+      description: The commit sha to associate the SARIF results to
+      type: string
+      
+  steps:
+  - name: build
+    image: ubuntu
+    env:
+      - name: GITHUB_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: github-token
+            key: token
+    script: |
+      #!/bin/sh
+      
+      echo "Installing Java"
+      apt update
+      apt upgrade
+      apt-cache search openjdk-17
+      apt -y install openjdk-17-jdk openjdk-17-jre wget
+
+      echo "Installing CodeQL CLI"
+      wget https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz -O ../codeql-bundle-linux64.tar.gz
+      tar xzvf ../codeql-bundle-linux64.tar.gz -C /opt/
+      rm ../codeql-bundle-linux64.tar.gz
+      export PATH=/opt/codeql:$PATH
+
+      echo "Initializing CodeQL"
+      codeql database init --source-root $(workspaces.source.path) --language=java --begin-tracing /java-db
+      . /java-db/temp/tracingEnvironment/start-tracing.sh
+
+      echo "Building project"
+      cd $(workspaces.source.path)
+      ./mvnw clean package -DskipTests=true
+
+      echo "Finalize CodeQL Database"
+      codeql database finalize /java-db
+
+      . /java-db/temp/tracingEnvironment/end-tracing.sh
+
+      echo "Analyze CodeQL Database"
+      mkdir ./temp
+      codeql database analyze /java-db java-security-and-quality.qls \
+      --format=sarif-latest \
+      --output=./temp/results-java.sarif
+
+      echo "Uploading SARIF results"
+      echo "$GITHUB_TOKEN" | codeql github upload-results \
+      --sarif=./temp/results-java.sarif \
+      --github-url=https://$(params.github-url) \
+      --repository=$(params.repository) \
+      --ref=$(params.ref) \
+      --commit=$(params.commit-sha) \
+      --github-auth-stdin
+
+
+
+

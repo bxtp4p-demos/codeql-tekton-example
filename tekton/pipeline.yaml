@@ -5,12 +5,17 @@ metadata:
 spec:
   description: | 
     This pipeline clones a git repo and runs codeql on it
+    
   params:
-  - name: repo-url
+  - name: github-url
     type: string
+  - name: repository
+    type: string
+
   workspaces:
   - name: shared-data
-#  - name: maven-settings
+  - name: ssh-creds
+
   tasks:
   - name: fetch-source
     taskRef:
@@ -18,34 +23,31 @@ spec:
     workspaces:
     - name: output
       workspace: shared-data
+    - name: ssh-directory
+      workspace: ssh-creds
     params:
     - name: url
-      value: $(params.repo-url)
+      value:
+        git@$(params.github-url):$(params.repository).git
     - name: deleteExisting
       value: "true"
-  - name: build
+  - name: build-and-code-scan
     taskRef:
       name: codeql-build-task
+
     runAfter:
       - fetch-source
+
+    params:
+    - name: github-url
+      value: $(params.github-url)
+
+    - name: commit-sha
+      value: $(tasks.fetch-source.results.commit)
+        
+    - name: repository
+      value: $(params.repository)
+      
     workspaces:
     - name: source
       workspace: shared-data
-
-#  - name: maven-run
-#    taskRef:
-#      name: maven
-#    runAfter:
-#      - fetch-source
-#    params:
-#      - name: GOALS
-#        value:
-#          - -DskipTests
-#          - clean
-#          - package
-#    workspaces:
-#      - name: source
-#        workspace: shared-data
-#      - name: maven-settings
-#        workspace: maven-settings
-

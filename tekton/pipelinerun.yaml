@@ -17,10 +17,14 @@ spec:
         resources:
           requests:
             storage: 1Gi
-#  - name: maven-settings
-#    emptyDir: {}
+  - name: ssh-creds
+    secret:
+      secretName: my-ssh-credentials
+            
   params:
-  - name: repo-url
-    value: https://github.com/spring-projects/spring-petclinic
-#  - name: MAVEN_IMAGE
-#    value: maven:3.8.3-openjdk-17
+  - name: github-url
+    value: github.com
+    
+  - name: repository
+    value: bxtp4p-demos/codeql-tekton-example
+
