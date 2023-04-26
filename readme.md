@@ -66,4 +66,4 @@ View the logs using [`tkn` cli](https://tekton.dev/docs/cli/):
 tkn pipelinerun logs -f test-codeql-xxxxx
 ```
 
-You can see the uploaded SARIF results in the GitHub Security tab in the repository you specified for the `sarif-repository` parameter.
+You can see the uploaded SARIF results in the GitHub Security tab in the repository you specified for the `repository` parameter.
