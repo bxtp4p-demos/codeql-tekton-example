@@ -53,7 +53,7 @@ spec:
 
       echo "Building project"
       cd $(workspaces.source.path)
-      ./mvnw clean package -DskipTests=true
+      ./mvnw clean package -DskipTests=true -Dcheckstyle.skip
 
       echo "Finalize CodeQL Database"
       codeql database finalize /java-db
