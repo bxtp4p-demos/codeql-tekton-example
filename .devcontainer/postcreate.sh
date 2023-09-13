@@ -13,4 +13,4 @@ kubectl apply --filename https://storage.googleapis.com/tekton-releases/triggers
 kubectl apply --filename https://storage.googleapis.com/tekton-releases/triggers/latest/interceptors.yaml
 
 echo "Install Tekton Dashboard"
-kubectl apply --filename https://storage.googleapis.com/tekton-releases/dashboard/latest/release.yaml
+kubectl apply --filename https://storage.googleapis.com/tekton-releases/dashboard/latest/release-full.yaml
